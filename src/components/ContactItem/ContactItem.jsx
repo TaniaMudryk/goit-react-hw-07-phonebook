@@ -1,20 +1,30 @@
 import { Button } from 'components/Button/Button.styled';
-import { useDispatch } from 'react-redux';
-import { deleteContact } from 'redux/contactsSlice';
+import { useDispatch, useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
 import { Item } from './ContactItem.styled';
+import { deleteContactsThunk } from 'redux/operations';
+import { useState } from 'react';
+import { selectIsLoading } from 'redux/selectors';
 
-export const ContactItem = ({ contact }) => {
+export const ContactItem = ({ contact: { name, number, id } }) => {
+  const [contactId, setContactId] = useState(null);
+  const isLoading = useSelector(selectIsLoading);
   const dispatch = useDispatch();
-
-  const handleDelete = () => dispatch(deleteContact(contact.id));
+  const handleDelete = () => {
+    dispatch(deleteContactsThunk(id));
+    setContactId(id);
+  };
   return (
-    <Item key={contact.id}>
+    <Item key={id}>
       <div>
         <p>
-          {contact.name}: {contact.number}
+          {name}: {number}
         </p>
-        <Button type="button" onClick={() => handleDelete(contact.id)}>
+        <Button
+          type="button"
+          onClick={() => handleDelete()}
+          disabled={isLoading && contactId === id}
+        >
           Delete
         </Button>
       </div>
@@ -24,6 +34,7 @@ export const ContactItem = ({ contact }) => {
 
 ContactItem.propTypes = {
   contact: PropTypes.exact({
+    createdAt: PropTypes.string.isRequired,
     id: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired,
     number: PropTypes.string.isRequired,

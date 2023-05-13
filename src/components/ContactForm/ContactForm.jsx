@@ -1,16 +1,25 @@
 import { Button } from 'components/Button/Button.styled';
 import { Box, Form } from './ContainerForm.styled';
-import { useDispatch } from 'react-redux';
-import { addContact } from 'redux/contactsSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { addContactsThunk } from 'redux/operations';
+import { selectIsLoading, selectVisibleContact } from 'redux/selectors';
 
 export const ContactForm = () => {
   const dispatch = useDispatch();
+  const isLoading = useSelector(selectIsLoading);
+  const contacts = useSelector(selectVisibleContact);
 
   const handleClick = event => {
     event.preventDefault();
-    const form = event.target.elements;
-
-    dispatch(addContact(form.name.value, form.number.value));
+    const form = event.target;
+    const name = form.elements.name.value;
+    const number = form.elements.number.value;
+    const isContactExists = contacts.some(contact => contact.name === name);
+    if (isContactExists) {
+      return alert(`${name} is already in contacts.`);
+    }
+    dispatch(addContactsThunk({ name, number }));
+    form.reset();
   };
 
   return (
@@ -36,7 +45,9 @@ export const ContactForm = () => {
             required
           />
         </div>
-        <Button type="submit">Add contact</Button>
+        <Button type="submit" disabled={isLoading}>
+          Add contact
+        </Button>
       </Box>
     </Form>
   );
